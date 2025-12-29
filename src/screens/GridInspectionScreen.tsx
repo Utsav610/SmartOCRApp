@@ -107,7 +107,7 @@ export const GridInspectionScreen: React.FC = () => {
             <View style={styles.matrixSection}>
                 <View style={styles.matrixHeader}>
                     <View style={styles.matrixHeaderLeft}>
-                        <Text style={styles.matrixIcon}>⊞</Text>
+                        <Grid3X3 size={20} color={colors.textSecondary} />
                         <Text style={styles.matrixTitle}>DATA MATRIX</Text>
                     </View>
                     <TouchableOpacity
@@ -121,41 +121,48 @@ export const GridInspectionScreen: React.FC = () => {
                 </View>
 
                 <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.gridScrollView}>
-                    <View style={styles.gridContainer}>
-                        {/* Column Headers */}
-                        <View style={styles.gridHeaderRow}>
-                            <View style={styles.gridCornerCell} />
-                            {Array.from({ length: gridConfig.columns }).map((_, colIdx) => (
-                                <View key={colIdx} style={styles.gridHeaderCell}>
-                                    <Text style={styles.gridHeaderText}>
-                                        {getColumnLabel(colIdx)}
-                                    </Text>
+                    style={styles.verticalScrollView}
+                    contentContainerStyle={styles.verticalScrollContent}
+                >
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.gridScrollView}>
+                        <View style={styles.gridContainer}>
+                            {/* Column Headers */}
+                            <View style={styles.gridHeaderRow}>
+                                <View style={styles.gridCornerCell} />
+                                {Array.from({ length: gridConfig.columns }).map((_, colIdx) => (
+                                    <View key={colIdx} style={styles.gridHeaderCell}>
+                                        <Text style={styles.gridHeaderText}>
+                                            {getColumnLabel(colIdx)}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+
+                            {matrixValues.map((row, rowIdx) => (
+                                <View key={rowIdx} style={styles.gridRow}>
+                                    {/* Row Number */}
+                                    <View style={styles.gridRowHeader}>
+                                        <Text style={styles.gridRowText}>{rowIdx + 1}</Text>
+                                    </View>
+                                    {/* Row Cells */}
+                                    {row.map((_, colIdx) => renderGridCell(rowIdx, colIdx))}
                                 </View>
                             ))}
                         </View>
-
-                        {matrixValues.map((row, rowIdx) => (
-                            <View key={rowIdx} style={styles.gridRow}>
-                                {/* Row Number */}
-                                <View style={styles.gridRowHeader}>
-                                    <Text style={styles.gridRowText}>{rowIdx + 1}</Text>
-                                </View>
-                                {/* Row Cells */}
-                                {row.map((_, colIdx) => renderGridCell(rowIdx, colIdx))}
-                            </View>
-                        ))}
-
-                        <TouchableOpacity
-                            style={styles.addRowButtonFull}
-                            onPress={async () => await addRow(inspection.id)}>
-                            <Plus size={20} color={colors.primary} />
-                            <Text style={styles.addRowText}>ADD NEW ROW</Text>
-                        </TouchableOpacity>
-                    </View>
+                    </ScrollView>
                 </ScrollView>
+
+                <View style={styles.floatingButtonContainer}>
+                    <TouchableOpacity
+                        style={styles.floatingAddButton}
+                        onPress={async () => await addRow(inspection.id)}>
+                        <Plus size={24} color="white" />
+                        <Text style={styles.floatingAddButtonText}>Add New Row</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Bottom Action Bar */}
@@ -304,12 +311,17 @@ const styles = StyleSheet.create({
         color: colors.primary,
         fontWeight: '600',
     },
-    gridScrollView: {
+    verticalScrollView: {
         flex: 1,
+    },
+    verticalScrollContent: {
+        paddingBottom: 80, // Space for floating button
+    },
+    gridScrollView: {
+        flexGrow: 0,
     },
     gridContainer: {
         paddingHorizontal: spacing.lg,
-        paddingBottom: spacing.xxxl,
     },
     gridHeaderRow: {
         flexDirection: 'row',
@@ -375,31 +387,36 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: colors.success,
     },
-    addRowButton: {
-        flexDirection: 'row',
+    floatingButtonContainer: {
+        position: 'absolute',
+        bottom: spacing.md,
+        left: 0,
+        right: 0,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: spacing.md,
-        marginTop: spacing.md,
-        gap: spacing.sm,
+        zIndex: 100,
     },
-    addRowButtonFull: {
+    floatingAddButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: colors.primary,
         paddingVertical: spacing.md,
-        marginTop: spacing.md,
-        marginLeft: 40,
-        marginRight: spacing.lg,
+        paddingHorizontal: spacing.xl,
+        borderRadius: 30,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
         gap: spacing.sm,
-        borderWidth: 2,
-        borderColor: colors.primary,
-        borderRadius: borderRadius.md,
-        backgroundColor: colors.surfaceLight,
     },
-    addRowText: {
+    floatingAddButtonText: {
         ...typography.button,
-        color: colors.primary,
+        color: 'white',
+        fontWeight: '600',
     },
     actionBar: {
         flexDirection: 'row',

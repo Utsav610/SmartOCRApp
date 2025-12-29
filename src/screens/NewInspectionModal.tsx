@@ -27,8 +27,8 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
     const { createInspection, setActiveInspection } = useInspectionStore();
 
     const [fileName, setFileName] = useState(`Job-${Date.now()}`);
-    const [selectedLayout, setSelectedLayout] = useState<string>('3x3');
-    const [customRows, setCustomRows] = useState('3');
+    const [selectedLayout, setSelectedLayout] = useState<string>('3-column');
+    const [customRows, setCustomRows] = useState('1');
     const [customColumns, setCustomColumns] = useState('3');
 
     const handleCreate = async () => {
