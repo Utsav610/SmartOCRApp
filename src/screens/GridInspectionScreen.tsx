@@ -5,8 +5,9 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    SafeAreaView,
+    Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { getColumnLabel, getCellId } from '../types/inspection';

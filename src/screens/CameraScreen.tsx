@@ -1,13 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
     View,
-    Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
+    Text,
     Alert,
 } from 'react-native';
-import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Camera, useCameraDevice, PhotoFile } from 'react-native-vision-camera';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, borderRadius } from '../theme';
 import RNFS from 'react-native-fs';
@@ -19,8 +19,7 @@ export const CameraScreen: React.FC = () => {
     const { row, column } = route.params as { row: number; column: number };
 
     const camera = useRef<Camera>(null);
-    const devices = useCameraDevices();
-    const device = devices.back;
+    const device = useCameraDevice('back');
 
     const [hasPermission, setHasPermission] = useState(false);
     const [flashEnabled, setFlashEnabled] = useState(false);
@@ -29,7 +28,7 @@ export const CameraScreen: React.FC = () => {
     useEffect(() => {
         (async () => {
             const status = await Camera.requestCameraPermission();
-            setHasPermission(status === 'authorized');
+            setHasPermission(status === 'granted');
         })();
     }, []);
 

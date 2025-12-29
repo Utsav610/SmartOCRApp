@@ -5,17 +5,21 @@ import {
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    SafeAreaView,
+    Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { RectButton } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { Inspection } from '../types/inspection';
 import { Button, Card, Input, StatusIndicator } from '../components';
 import { colors, typography, spacing, borderRadius } from '../theme';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 export const InspectionListScreen: React.FC = () => {
     const navigation = useNavigation();
-    const { inspections, loadInspections, setActiveInspection } = useInspectionStore();
+    const { inspections, loadInspections, setActiveInspection, deleteInspection } = useInspectionStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [showNewModal, setShowNewModal] = useState(false);
 
@@ -51,26 +55,58 @@ export const InspectionListScreen: React.FC = () => {
         navigation.navigate('GridInspection' as never);
     };
 
+    const renderRightActions = (id: string) => {
+        return (
+            <RectButton
+                style={styles.deleteAction}
+                onPress={() => handleDeletePress(id)}>
+                <Animated.Text style={styles.deleteActionText}>Delete</Animated.Text>
+            </RectButton>
+        );
+    };
+
+    const handleDeletePress = (id: string) => {
+        Alert.alert(
+            'Delete Inspection',
+            'Are you sure you want to delete this inspection? This action cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await deleteInspection(id);
+                    },
+                },
+            ]
+        );
+    };
+
     const renderInspectionCard = ({ item }: { item: Inspection }) => (
-        <TouchableOpacity
-            onPress={() => handleInspectionPress(item)}
-            activeOpacity={0.7}>
-            <Card style={styles.inspectionCard}>
-                <View style={styles.cardContent}>
-                    <View style={styles.iconContainer}>
-                        <Text style={styles.icon}>📄</Text>
+        <Swipeable
+            renderRightActions={() => renderRightActions(item.id)}
+            friction={2}
+            rightThreshold={40}>
+            <TouchableOpacity
+                onPress={() => handleInspectionPress(item)}
+                activeOpacity={0.7}>
+                <Card style={styles.inspectionCard}>
+                    <View style={styles.cardContent}>
+                        <View style={styles.iconContainer}>
+                            <Text style={styles.icon}>📄</Text>
+                        </View>
+                        <View style={styles.cardInfo}>
+                            <Text style={styles.inspectionName}>{item.name}</Text>
+                            <Text style={styles.inspectionDate}>{formatDate(item.modifiedAt)}</Text>
+                        </View>
+                        <View style={styles.cardRight}>
+                            <StatusIndicator status={item.status} size={10} />
+                            <Text style={styles.chevron}>›</Text>
+                        </View>
                     </View>
-                    <View style={styles.cardInfo}>
-                        <Text style={styles.inspectionName}>{item.name}</Text>
-                        <Text style={styles.inspectionDate}>{formatDate(item.modifiedAt)}</Text>
-                    </View>
-                    <View style={styles.cardRight}>
-                        <StatusIndicator status={item.status} size={10} />
-                        <Text style={styles.chevron}>›</Text>
-                    </View>
-                </View>
-            </Card>
-        </TouchableOpacity>
+                </Card>
+            </TouchableOpacity>
+        </Swipeable>
     );
 
     return (
@@ -238,5 +274,19 @@ const styles = StyleSheet.create({
     },
     newButton: {
         width: '100%',
+    },
+    deleteAction: {
+        backgroundColor: colors.error,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 80,
+        height: '81%', // Match card height minus margin
+        borderRadius: borderRadius.md,
+        marginBottom: spacing.md,
+    },
+    deleteActionText: {
+        color: 'white',
+        fontWeight: '600',
+        padding: 20,
     },
 });
