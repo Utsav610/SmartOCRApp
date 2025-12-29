@@ -6,6 +6,7 @@ import { GridInspectionScreen } from '../screens/GridInspectionScreen';
 import { CameraScreen } from '../screens/CameraScreen';
 import { ReadingConfirmationScreen } from '../screens/ReadingConfirmationScreen';
 import { ManualEntryModal } from '../screens/ManualEntryModal';
+import { SplashScreen } from '../screens/SplashScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,10 +14,15 @@ export const AppNavigator: React.FC = () => {
     return (
         <NavigationContainer>
             <Stack.Navigator
+                initialRouteName="Splash"
                 screenOptions={{
                     headerShown: false,
                     animation: 'slide_from_right',
                 }}>
+                <Stack.Screen
+                    name="Splash"
+                    component={SplashScreen}
+                />
                 <Stack.Screen
                     name="InspectionList"
                     component={InspectionListScreen}
@@ -45,6 +51,6 @@ export const AppNavigator: React.FC = () => {
                     }}
                 />
             </Stack.Navigator>
-        </NavigationContainer>
+        </NavigationContainer >
     );
 };

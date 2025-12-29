@@ -1,72 +1,71 @@
-import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Inspection } from '../types/inspection';
-
-// Create MMKV instance safely
-let storage: MMKV | null = null;
-try {
-    storage = new MMKV({
-        id: 'smart-ocr-storage',
-    });
-} catch (error) {
-    console.error('Failed to initialize MMKV:', error);
-}
-
-const INSPECTIONS_KEY = 'inspections';
-const SETTINGS_KEY = 'settings';
 
 export interface AppSettings {
     autoAdvance: boolean;
     defaultGridLayout: string;
 }
 
-// Inspection storage
-export function saveInspections(inspections: Inspection[]): void {
-    if (!storage) return;
+export async function storeData(key: string, detail: any) {
     try {
-        storage.set(INSPECTIONS_KEY, JSON.stringify(inspections));
+        await AsyncStorage.setItem(key, JSON.stringify(detail));
     } catch (error) {
-        console.error('Failed to save inspections:', error);
+        console.error(`Failed to store data for key ${key}:`, error);
     }
 }
 
-export function loadInspections(): Inspection[] {
-    if (!storage) return [];
+export async function getData(key: string): Promise<string | null> {
     try {
-        const data = storage.getString(INSPECTIONS_KEY);
-        if (!data) return [];
-        return JSON.parse(data);
+        return await AsyncStorage.getItem(key);
     } catch (error) {
-        console.error('Failed to load inspections:', error);
-        return [];
-    }
-}
-
-export function clearInspections(): void {
-    if (storage) storage.delete(INSPECTIONS_KEY);
-}
-
-// Settings storage
-export function saveSettings(settings: AppSettings): void {
-    if (!storage) return;
-    try {
-        storage.set(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (error) {
-        console.error('Failed to save settings:', error);
-    }
-}
-
-export function loadSettings(): AppSettings | null {
-    if (!storage) return null;
-    try {
-        const data = storage.getString(SETTINGS_KEY);
-        if (!data) return null;
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Failed to load settings:', error);
+        console.error(`Failed to get data for key ${key}:`, error);
         return null;
     }
 }
 
-export function clearAllData(): void {
-    if (storage) storage.clearAll();
+export async function removeData(key: string) {
+    try {
+        await AsyncStorage.removeItem(key);
+    } catch (error) {
+        console.error(`Failed to remove data for key ${key}:`, error);
+    }
+}
+
+export async function removeAllData() {
+    try {
+        await AsyncStorage.clear();
+    } catch (error) {
+        console.error('Failed to clear all data:', error);
+    }
+}
+
+// Typed helpers using the generic functions
+export async function saveInspections(inspections: Inspection[]): Promise<void> {
+    await storeData('inspections', inspections);
+}
+
+export async function loadInspections(): Promise<Inspection[]> {
+    const data = await getData('inspections');
+    if (!data) return [];
+    try {
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Failed to parse inspections:', error);
+        return [];
+    }
+}
+
+export async function saveSettings(settings: AppSettings): Promise<void> {
+    await storeData('settings', settings);
+}
+
+export async function loadSettings(): Promise<AppSettings | null> {
+    const data = await getData('settings');
+    if (!data) return null;
+    try {
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Failed to parse settings:', error);
+        return null;
+    }
 }

@@ -30,7 +30,7 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
     const [customRows, setCustomRows] = useState('3');
     const [customColumns, setCustomColumns] = useState('3');
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         const layout = GRID_LAYOUTS.find(l => l.id === selectedLayout);
         if (!layout) return;
 
@@ -43,7 +43,7 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
             };
         }
 
-        const inspectionId = createInspection(fileName, gridConfig);
+        const inspectionId = await createInspection(fileName, gridConfig);
         setActiveInspection(inspectionId);
         onClose();
         navigation.navigate('GridInspection' as never);
@@ -109,7 +109,7 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
                                     style={[
                                         styles.layoutCard,
                                         selectedLayout === layout.id && styles.layoutCard_selected,
-                                    ]}>
+                                    ] as any}>
                                     <View style={styles.layoutContent}>
                                         {renderGridIcon(layout)}
                                         <View style={styles.layoutInfo}>

@@ -32,12 +32,12 @@ export const GridInspectionScreen: React.FC = () => {
 
     const handleCellPress = (row: number, column: number) => {
         setSelectedCell({ row, column });
-        navigation.navigate('Camera' as never, { row, column } as never);
+        (navigation as any).navigate('Camera', { row, column });
     };
 
     const handleManualEntry = () => {
         if (selectedCell) {
-            navigation.navigate('ManualEntry' as never, selectedCell as never);
+            (navigation as any).navigate('ManualEntry', selectedCell);
         }
     };
 
@@ -110,7 +110,7 @@ export const GridInspectionScreen: React.FC = () => {
                     </View>
                     <TouchableOpacity
                         style={styles.autoAdvanceToggle}
-                        onPress={() => setAutoAdvance(!autoAdvance)}>
+                        onPress={async () => await setAutoAdvance(!autoAdvance)}>
                         <View style={[styles.toggle, autoAdvance && styles.toggle_active]}>
                             <View style={[styles.toggleThumb, autoAdvance && styles.toggleThumb_active]} />
                         </View>
@@ -150,7 +150,7 @@ export const GridInspectionScreen: React.FC = () => {
                         {/* Add Row Button */}
                         <TouchableOpacity
                             style={styles.addRowButton}
-                            onPress={() => addRow(inspection.id)}>
+                            onPress={async () => await addRow(inspection.id)}>
                             <Text style={styles.addRowIcon}>+</Text>
                             <Text style={styles.addRowText}>ADD ROW</Text>
                         </TouchableOpacity>
@@ -175,7 +175,7 @@ export const GridInspectionScreen: React.FC = () => {
 
                 <TouchableOpacity
                     style={styles.actionButton}
-                    onPress={() => setAutoAdvance(!autoAdvance)}>
+                    onPress={async () => await setAutoAdvance(!autoAdvance)}>
                     <Text style={styles.actionIcon}>🔄</Text>
                     <Text style={styles.actionLabel}>AUTO</Text>
                 </TouchableOpacity>

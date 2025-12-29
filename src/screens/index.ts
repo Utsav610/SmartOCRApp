@@ -5,3 +5,4 @@ export { CameraScreen } from './CameraScreen';
 export { ReadingConfirmationScreen } from './ReadingConfirmationScreen';
 export { ManualEntryModal } from './ManualEntryModal';
 export { ExportModal } from './ExportModal';
+export { SplashScreen } from './SplashScreen';
