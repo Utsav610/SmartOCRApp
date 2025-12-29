@@ -12,6 +12,7 @@ import { useInspectionStore } from '../store/inspectionStore';
 import { GRID_LAYOUTS, GridLayoutOption } from '../types/inspection';
 import { Button, Card, Input } from '../components';
 import { colors, typography, spacing, borderRadius } from '../theme';
+import { X, Edit2, Check } from 'lucide-react-native';
 
 interface NewInspectionModalProps {
     visible: boolean;
@@ -85,7 +86,7 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>New Inspection</Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Text style={styles.closeIcon}>✕</Text>
+                            <X size={24} color={colors.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
@@ -95,7 +96,7 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
                             value={fileName}
                             onChangeText={setFileName}
                             placeholder="Enter file name"
-                            rightIcon={<Text style={styles.editIcon}>✏️</Text>}
+                            rightIcon={<Edit2 size={16} color={colors.textSecondary} />}
                         />
 
                         <Text style={styles.sectionLabel}>SELECT GRID LAYOUT</Text>
@@ -119,7 +120,7 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
                                             </Text>
                                         </View>
                                         {selectedLayout === layout.id && (
-                                            <Text style={styles.checkmark}>✓</Text>
+                                            <Check size={24} color={colors.primary} />
                                         )}
                                     </View>
                                 </Card>
@@ -187,10 +188,6 @@ const styles = StyleSheet.create({
     closeButton: {
         padding: spacing.sm,
     },
-    closeIcon: {
-        fontSize: 24,
-        color: colors.textSecondary,
-    },
     modalBody: {
         padding: spacing.lg,
     },
@@ -249,11 +246,6 @@ const styles = StyleSheet.create({
         ...typography.caption,
         color: colors.textSecondary,
     },
-    checkmark: {
-        fontSize: 24,
-        color: colors.primary,
-        fontWeight: 'bold',
-    },
     customInputs: {
         flexDirection: 'row',
         gap: spacing.md,
@@ -268,8 +260,5 @@ const styles = StyleSheet.create({
     },
     createButton: {
         width: '100%',
-    },
-    editIcon: {
-        fontSize: 18,
     },
 });

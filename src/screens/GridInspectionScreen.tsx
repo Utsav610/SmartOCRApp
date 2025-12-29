@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { getColumnLabel, getCellId } from '../types/inspection';
 import { Button, Card } from '../components';
+import { ArrowLeft, Grid3X3, Plus, Minus, Keyboard, Camera, RefreshCw } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '../theme';
 
 export const GridInspectionScreen: React.FC = () => {
@@ -64,7 +65,7 @@ export const GridInspectionScreen: React.FC = () => {
                         <View style={styles.cellIndicator} />
                     </View>
                 ) : (
-                    <Text style={styles.cellEmpty}>-</Text>
+                    <Minus size={24} color={colors.textTertiary} />
                 )}
             </TouchableOpacity>
         );
@@ -77,7 +78,7 @@ export const GridInspectionScreen: React.FC = () => {
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.backButton}>
-                    <Text style={styles.backIcon}>←</Text>
+                    <ArrowLeft size={24} color={colors.text} />
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle}>{name}</Text>
@@ -136,7 +137,6 @@ export const GridInspectionScreen: React.FC = () => {
                             ))}
                         </View>
 
-                        {/* Grid Rows */}
                         {matrixValues.map((row, rowIdx) => (
                             <View key={rowIdx} style={styles.gridRow}>
                                 {/* Row Number */}
@@ -151,7 +151,7 @@ export const GridInspectionScreen: React.FC = () => {
                         <TouchableOpacity
                             style={styles.addRowButtonFull}
                             onPress={async () => await addRow(inspection.id)}>
-                            <Text style={styles.addRowIcon}>+</Text>
+                            <Plus size={20} color={colors.primary} />
                             <Text style={styles.addRowText}>ADD NEW ROW</Text>
                         </TouchableOpacity>
                     </View>
@@ -163,20 +163,20 @@ export const GridInspectionScreen: React.FC = () => {
                 <TouchableOpacity
                     style={styles.actionButton}
                     onPress={handleManualEntry}>
-                    <Text style={styles.actionIcon}>⌨</Text>
+                    <Keyboard size={24} color={colors.textSecondary} />
                     <Text style={styles.actionLabel}>KEYPAD</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.cameraButton}
                     onPress={() => selectedCell && handleCellPress(selectedCell.row, selectedCell.column)}>
-                    <Text style={styles.cameraIcon}>📷</Text>
+                    <Camera size={32} color="white" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.actionButton}
                     onPress={async () => await setAutoAdvance(!autoAdvance)}>
-                    <Text style={styles.actionIcon}>🔄</Text>
+                    <RefreshCw size={24} color={colors.textSecondary} />
                     <Text style={styles.actionLabel}>AUTO</Text>
                 </TouchableOpacity>
             </View>
@@ -206,10 +206,6 @@ const styles = StyleSheet.create({
     },
     backButton: {
         padding: spacing.sm,
-    },
-    backIcon: {
-        fontSize: 24,
-        color: colors.text,
     },
     headerCenter: {
         flex: 1,
@@ -274,10 +270,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.sm,
-    },
-    matrixIcon: {
-        fontSize: 18,
-        color: colors.textSecondary,
     },
     matrixTitle: {
         ...typography.label,
@@ -383,10 +375,6 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: colors.success,
     },
-    cellEmpty: {
-        ...typography.h2,
-        color: colors.textTertiary,
-    },
     addRowButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -409,10 +397,6 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.md,
         backgroundColor: colors.surfaceLight,
     },
-    addRowIcon: {
-        fontSize: 20,
-        color: colors.primary,
-    },
     addRowText: {
         ...typography.button,
         color: colors.primary,
@@ -432,9 +416,6 @@ const styles = StyleSheet.create({
         gap: spacing.xs,
         padding: spacing.sm,
     },
-    actionIcon: {
-        fontSize: 24,
-    },
     actionLabel: {
         ...typography.captionSmall,
         color: colors.textSecondary,
@@ -447,8 +428,5 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    cameraIcon: {
-        fontSize: 32,
     },
 });

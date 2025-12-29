@@ -10,6 +10,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { Button } from '../components';
 import { colors, typography, spacing, borderRadius } from '../theme';
+import { X, Delete } from 'lucide-react-native';
 
 interface RouteParams {
     row: number;
@@ -76,7 +77,7 @@ export const ManualEntryModal: React.FC = () => {
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
                             style={styles.closeButton}>
-                            <Text style={styles.closeIcon}>✕</Text>
+                            <X size={24} color={colors.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
@@ -104,7 +105,12 @@ export const ManualEntryModal: React.FC = () => {
                         <View style={styles.keyRow}>
                             {renderKey('.', handleDecimal)}
                             {renderKey('0', () => handleNumberPress('0'))}
-                            {renderKey('⌫', handleBackspace, { backgroundColor: colors.surfaceLight })}
+                            <TouchableOpacity
+                                style={[styles.key, { backgroundColor: colors.surfaceLight }]}
+                                onPress={handleBackspace}
+                                activeOpacity={0.7}>
+                                <Delete size={28} color={colors.text} />
+                            </TouchableOpacity>
                         </View>
                     </View>
 
@@ -156,10 +162,6 @@ const styles = StyleSheet.create({
     },
     closeButton: {
         padding: spacing.sm,
-    },
-    closeIcon: {
-        fontSize: 24,
-        color: colors.textSecondary,
     },
     display: {
         flexDirection: 'row',

@@ -11,6 +11,7 @@ import { useInspectionStore } from '../store/inspectionStore';
 import { Button, Card } from '../components';
 import { colors, typography, spacing, borderRadius } from '../theme';
 import { exportToCSV } from '../utils/csvExport';
+import { X, ChartBar, Share } from 'lucide-react-native';
 
 interface ExportModalProps {
     visible: boolean;
@@ -54,7 +55,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     <View style={styles.header}>
                         <Text style={styles.title}>Export Data</Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Text style={styles.closeIcon}>✕</Text>
+                            <X size={24} color={colors.textSecondary} />
                         </TouchableOpacity>
                     </View>
 
@@ -68,7 +69,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                             <Card style={styles.formatCard}>
                                 <View style={styles.formatContent}>
                                     <View style={styles.formatIcon}>
-                                        <Text style={styles.formatIconText}>📊</Text>
+                                        <ChartBar size={28} color={colors.text} />
                                     </View>
                                     <View style={styles.formatInfo}>
                                         <Text style={styles.formatName}>CSV (Spreadsheet)</Text>
@@ -83,7 +84,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
                     <View style={styles.footer}>
                         <Button
-                            title="📤 Export Now"
+                            title="Export Now"
+                            icon={<Share size={20} color={colors.text} />}
                             onPress={handleExport}
                             size="large"
                             style={styles.exportButton}
@@ -123,10 +125,6 @@ const styles = StyleSheet.create({
     closeButton: {
         padding: spacing.sm,
     },
-    closeIcon: {
-        fontSize: 24,
-        color: colors.textSecondary,
-    },
     body: {
         padding: spacing.lg,
     },
@@ -156,9 +154,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: spacing.md,
-    },
-    formatIconText: {
-        fontSize: 28,
     },
     formatInfo: {
         flex: 1,

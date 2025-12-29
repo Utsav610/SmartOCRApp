@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RectButton } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
+import { FileText, ChevronRight, Search, Plus, Trash2, Settings } from 'lucide-react-native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { Inspection } from '../types/inspection';
 import { Button, Card, Input, StatusIndicator } from '../components';
@@ -60,7 +61,7 @@ export const InspectionListScreen: React.FC = () => {
             <RectButton
                 style={styles.deleteAction}
                 onPress={() => handleDeletePress(id)}>
-                <Animated.Text style={styles.deleteActionText}>Delete</Animated.Text>
+                <Trash2 size={24} color="white" />
             </RectButton>
         );
     };
@@ -93,7 +94,7 @@ export const InspectionListScreen: React.FC = () => {
                 <Card style={styles.inspectionCard}>
                     <View style={styles.cardContent}>
                         <View style={styles.iconContainer}>
-                            <Text style={styles.icon}>📄</Text>
+                            <FileText size={24} color={colors.text} />
                         </View>
                         <View style={styles.cardInfo}>
                             <Text style={styles.inspectionName}>{item.name}</Text>
@@ -101,7 +102,7 @@ export const InspectionListScreen: React.FC = () => {
                         </View>
                         <View style={styles.cardRight}>
                             <StatusIndicator status={item.status} size={10} />
-                            <Text style={styles.chevron}>›</Text>
+                            <ChevronRight size={24} color={colors.textSecondary} />
                         </View>
                     </View>
                 </Card>
@@ -117,7 +118,7 @@ export const InspectionListScreen: React.FC = () => {
                     <Text style={styles.headerTitle}>Local Files</Text>
                 </View>
                 <TouchableOpacity style={styles.settingsButton}>
-                    <Text style={styles.settingsIcon}>⚙️</Text>
+                    <Settings size={24} color={colors.text} />
                 </TouchableOpacity>
             </View>
 
@@ -126,7 +127,7 @@ export const InspectionListScreen: React.FC = () => {
                     placeholder="Search Job ID..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    leftIcon={<Text style={styles.searchIcon}>🔍</Text>}
+                    leftIcon={<Search size={18} color={colors.textSecondary} />}
                     containerStyle={styles.searchInput}
                 />
             </View>
@@ -148,7 +149,8 @@ export const InspectionListScreen: React.FC = () => {
 
             <View style={styles.footer}>
                 <Button
-                    title="+ New Inspection"
+                    title="New Inspection"
+                    icon={<Plus size={20} color={colors.text} />}
                     onPress={() => setShowNewModal(true)}
                     size="large"
                     style={styles.newButton}
@@ -193,18 +195,12 @@ const styles = StyleSheet.create({
     settingsButton: {
         padding: spacing.sm,
     },
-    settingsIcon: {
-        fontSize: 24,
-    },
     searchContainer: {
         paddingHorizontal: spacing.lg,
         marginBottom: spacing.md,
     },
     searchInput: {
         marginBottom: 0,
-    },
-    searchIcon: {
-        fontSize: 18,
     },
     listContent: {
         paddingHorizontal: spacing.lg,
@@ -226,9 +222,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginRight: spacing.md,
     },
-    icon: {
-        fontSize: 24,
-    },
     cardInfo: {
         flex: 1,
     },
@@ -245,10 +238,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.md,
-    },
-    chevron: {
-        fontSize: 24,
-        color: colors.textSecondary,
     },
     emptyState: {
         alignItems: 'center',
@@ -283,10 +272,5 @@ const styles = StyleSheet.create({
         height: '81%', // Match card height minus margin
         borderRadius: borderRadius.md,
         marginBottom: spacing.md,
-    },
-    deleteActionText: {
-        color: 'white',
-        fontWeight: '600',
-        padding: 20,
     },
 });

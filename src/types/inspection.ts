@@ -16,7 +16,7 @@ export interface Inspection {
     name: string;
     gridConfig: GridConfig;
     matrixValues: (number | null)[][];
-    imageReferences: Record<string, string>; // cellId (e.g., "A-1") -> imagePath
+    imageReferences: Record<string, string>;
     createdAt: number;
     modifiedAt: number;
     status: InspectionStatus;
@@ -73,17 +73,16 @@ export interface OCRScanResult {
     cellPosition: CellPosition;
 }
 
-// Helper function to get column label (0 -> A, 1 -> B, etc.)
+
 export function getColumnLabel(index: number): string {
     return String.fromCharCode(65 + index); // 65 is 'A' in ASCII
 }
 
-// Helper function to get cell ID
 export function getCellId(row: number, column: number): string {
     return `${getColumnLabel(column)}-${row + 1}`;
 }
 
-// Helper function to create empty matrix
+
 export function createEmptyMatrix(rows: number, columns: number): (number | null)[][] {
     return Array.from({ length: rows }, () => Array(columns).fill(null));
 }
