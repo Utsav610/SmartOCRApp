@@ -37,25 +37,25 @@ export interface GridLayoutOption {
 
 export const GRID_LAYOUTS: GridLayoutOption[] = [
     {
-        id: '3x3',
-        name: '3 Grid',
-        description: '3x3 Inspection points',
-        icon: 'grid-3x3',
-        gridConfig: { rows: 3, columns: 3 },
+        id: '3-column',
+        name: '3 Column',
+        description: '3 Column Inspection',
+        icon: 'grid-3col',
+        gridConfig: { rows: 1, columns: 3 },
     },
     {
-        id: '4x4',
-        name: '4 Grid',
-        description: '4x4 Standard area',
-        icon: 'grid-4x4',
-        gridConfig: { rows: 4, columns: 4 },
+        id: '4-column',
+        name: '4 Column',
+        description: '4 Column Standard area',
+        icon: 'grid-4col',
+        gridConfig: { rows: 1, columns: 4 },
     },
     {
         id: 'custom',
         name: 'Custom Grid',
-        description: 'Define rows & columns',
+        description: 'Define columns (rows start at 1)',
         icon: 'grid-custom',
-        gridConfig: { rows: 3, columns: 3 }, // Default for custom
+        gridConfig: { rows: 1, columns: 3 }, // Default for custom
     },
 ];
 

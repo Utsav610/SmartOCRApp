@@ -148,12 +148,11 @@ export const GridInspectionScreen: React.FC = () => {
                             </View>
                         ))}
 
-                        {/* Add Row Button */}
                         <TouchableOpacity
-                            style={styles.addRowButton}
+                            style={styles.addRowButtonFull}
                             onPress={async () => await addRow(inspection.id)}>
                             <Text style={styles.addRowIcon}>+</Text>
-                            <Text style={styles.addRowText}>ADD ROW</Text>
+                            <Text style={styles.addRowText}>ADD NEW ROW</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -395,6 +394,20 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         marginTop: spacing.md,
         gap: spacing.sm,
+    },
+    addRowButtonFull: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: spacing.md,
+        marginTop: spacing.md,
+        marginLeft: 40,
+        marginRight: spacing.lg,
+        gap: spacing.sm,
+        borderWidth: 2,
+        borderColor: colors.primary,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.surfaceLight,
     },
     addRowIcon: {
         fontSize: 20,
