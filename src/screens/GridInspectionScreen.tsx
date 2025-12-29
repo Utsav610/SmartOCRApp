@@ -12,15 +12,22 @@ import { useNavigation } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { getColumnLabel, getCellId } from '../types/inspection';
 import { Button, Card } from '../components';
-import { ArrowLeft, Grid3X3, Plus, Minus, Keyboard, Camera, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, Grid3X3, Plus, Minus, Keyboard, Camera, Share } from 'lucide-react-native';
+import { ExportModal } from './ExportModal';
 import { colors, typography, spacing, borderRadius } from '../theme';
 
 export const GridInspectionScreen: React.FC = () => {
     const navigation = useNavigation();
-    const { getActiveInspection, autoAdvance, setAutoAdvance, addRow } = useInspectionStore();
-    const inspection = getActiveInspection();
+
+    const inspection = useInspectionStore(state =>
+        state.inspections.find(i => i.id === state.activeInspectionId)
+    );
+    const addRow = useInspectionStore(state => state.addRow);
 
     const [selectedCell, setSelectedCell] = useState<{ row: number; column: number } | null>(null);
+    const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+    console.log('isExportModalVisible', isExportModalVisible);
+
 
     if (!inspection) {
         return (
@@ -30,11 +37,30 @@ export const GridInspectionScreen: React.FC = () => {
         );
     }
 
-    const { gridConfig, matrixValues, name, metadata } = inspection;
+    const { gridConfig, matrixValues, name, metadata, imageReferences } = inspection;
 
     const handleCellPress = (row: number, column: number) => {
         setSelectedCell({ row, column });
-        (navigation as any).navigate('Camera', { row, column });
+
+        const existingValue = matrixValues[row][column];
+        const cellId = getCellId(row, column);
+
+        if (existingValue !== null) {
+            // View existing reading
+            (navigation as any).navigate('ReadingConfirmation', {
+                row,
+                column,
+                imagePath: imageReferences?.[cellId] || '',
+                ocrResult: {
+                    value: existingValue,
+                    confidence: 1.0, // Mock confidence for manual/existing entries
+                    rawText: existingValue.toString(),
+                },
+            });
+        } else {
+            // New reading -> Camera
+            (navigation as any).navigate('Camera', { row, column });
+        }
     };
 
     const handleManualEntry = () => {
@@ -88,10 +114,12 @@ export const GridInspectionScreen: React.FC = () => {
                         </Text>
                     )}
                 </View>
-                <View style={styles.connectedBadge}>
-                    <View style={styles.connectedDot} />
-                    <Text style={styles.connectedText}>CONNECTED</Text>
-                </View>
+                <TouchableOpacity
+                    style={styles.connectedBadge}
+                    onPress={() => setIsExportModalVisible(true)}>
+                    <Share size={16} color={colors.primary} />
+                    <Text style={styles.connectedText}>Export</Text>
+                </TouchableOpacity>
             </View>
 
             {/* Camera Preview Section (Placeholder) */}
@@ -110,14 +138,6 @@ export const GridInspectionScreen: React.FC = () => {
                         <Grid3X3 size={20} color={colors.textSecondary} />
                         <Text style={styles.matrixTitle}>DATA MATRIX</Text>
                     </View>
-                    <TouchableOpacity
-                        style={styles.autoAdvanceToggle}
-                        onPress={async () => await setAutoAdvance(!autoAdvance)}>
-                        <View style={[styles.toggle, autoAdvance && styles.toggle_active]}>
-                            <View style={[styles.toggleThumb, autoAdvance && styles.toggleThumb_active]} />
-                        </View>
-                        <Text style={styles.autoAdvanceText}>AUTO-ADVANCE</Text>
-                    </TouchableOpacity>
                 </View>
 
                 <ScrollView
@@ -180,13 +200,13 @@ export const GridInspectionScreen: React.FC = () => {
                     <Camera size={32} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={async () => await setAutoAdvance(!autoAdvance)}>
-                    <RefreshCw size={24} color={colors.textSecondary} />
-                    <Text style={styles.actionLabel}>AUTO</Text>
-                </TouchableOpacity>
             </View>
+
+            <ExportModal
+                visible={isExportModalVisible}
+                onClose={() => setIsExportModalVisible(false)}
+                inspectionId={inspection.id}
+            />
         </SafeAreaView>
     );
 };
@@ -281,35 +301,6 @@ const styles = StyleSheet.create({
     matrixTitle: {
         ...typography.label,
         color: colors.textSecondary,
-    },
-    autoAdvanceToggle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
-    },
-    toggle: {
-        width: 40,
-        height: 22,
-        borderRadius: 11,
-        backgroundColor: colors.surfaceLight,
-        padding: 2,
-    },
-    toggle_active: {
-        backgroundColor: colors.primary,
-    },
-    toggleThumb: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        backgroundColor: colors.text,
-    },
-    toggleThumb_active: {
-        transform: [{ translateX: 18 }],
-    },
-    autoAdvanceText: {
-        ...typography.captionSmall,
-        color: colors.primary,
-        fontWeight: '600',
     },
     verticalScrollView: {
         flex: 1,

@@ -6,7 +6,8 @@ export async function exportToCSV(inspection: Inspection): Promise<void> {
     try {
         const csv = generateCSV(inspection);
         const fileName = `${inspection.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.csv`;
-        const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        // Use CachesDirectoryPath for temporary file sharing to avoid permission issues
+        const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
         // Write CSV file
         await RNFS.writeFile(filePath, csv, 'utf8');

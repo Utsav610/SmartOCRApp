@@ -5,13 +5,15 @@ import {
     TouchableOpacity,
     Text,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera, useCameraDevice, PhotoFile } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, PhotoFile, useCameraPermission } from 'react-native-vision-camera';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, borderRadius } from '../theme';
 import RNFS from 'react-native-fs';
 import OCRModule from '../native-modules/OCRModule';
+import { ArrowLeft, Zap, ZapOff } from 'lucide-react-native';
 
 export const CameraScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -21,16 +23,15 @@ export const CameraScreen: React.FC = () => {
     const camera = useRef<Camera>(null);
     const device = useCameraDevice('back');
 
-    const [hasPermission, setHasPermission] = useState(false);
+    const { hasPermission, requestPermission } = useCameraPermission();
     const [flashEnabled, setFlashEnabled] = useState(false);
     const [isCapturing, setIsCapturing] = useState(false);
 
     useEffect(() => {
-        (async () => {
-            const status = await Camera.requestCameraPermission();
-            setHasPermission(status === 'granted');
-        })();
-    }, []);
+        if (!hasPermission) {
+            requestPermission();
+        }
+    }, [hasPermission, requestPermission]);
 
     const handleCapture = async () => {
         if (!camera.current || isCapturing) return;
@@ -94,13 +95,17 @@ export const CameraScreen: React.FC = () => {
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
                         style={styles.backButton}>
-                        <Text style={styles.backIcon}>←</Text>
+                        <ArrowLeft size={24} color="white" />
                     </TouchableOpacity>
                     <View style={styles.spacer} />
                     <TouchableOpacity
                         onPress={() => setFlashEnabled(!flashEnabled)}
                         style={styles.flashButton}>
-                        <Text style={styles.flashIcon}>{flashEnabled ? '⚡' : '🔦'}</Text>
+                        {flashEnabled ? (
+                            <Zap size={24} color={colors.primary} />
+                        ) : (
+                            <ZapOff size={24} color="white" />
+                        )}
                     </TouchableOpacity>
                 </View>
 
@@ -123,7 +128,11 @@ export const CameraScreen: React.FC = () => {
                         style={styles.captureButton}
                         onPress={handleCapture}
                         disabled={isCapturing}>
-                        <View style={styles.captureButtonInner} />
+                        {isCapturing ? (
+                            <ActivityIndicator size="large" color={colors.primary} />
+                        ) : (
+                            <View style={styles.captureButtonInner} />
+                        )}
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -160,8 +169,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     backIcon: {
-        fontSize: 24,
-        color: colors.text,
+        // Removed as it is replaced by Lucide icon
     },
     spacer: {
         flex: 1,
@@ -175,7 +183,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     flashIcon: {
-        fontSize: 24,
+        // Removed as it is replaced by Lucide icon
     },
     scanFrame: {
         position: 'absolute',

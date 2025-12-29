@@ -12,8 +12,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { getCellId, getColumnLabel } from '../types/inspection';
 import { Button } from '../components';
+
 import { colors, typography, spacing, borderRadius } from '../theme';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { ArrowLeft, MapPin, RefreshCw, Edit2, Trash2, Check } from 'lucide-react-native';
 
 interface RouteParams {
     row: number;
@@ -58,7 +60,7 @@ export const ReadingConfirmationScreen: React.FC = () => {
     };
 
     const handleRetake = () => {
-        navigation.goBack();
+        navigation.navigate('Camera' as never, { row, column } as never);
     };
 
     const handleDelete = () => {
@@ -74,7 +76,7 @@ export const ReadingConfirmationScreen: React.FC = () => {
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.backButton}>
-                    <Text style={styles.backIcon}>←</Text>
+                    <ArrowLeft size={24} color={colors.text} />
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle}>Cell {columnLabel}-{rowNumber}</Text>
@@ -90,7 +92,7 @@ export const ReadingConfirmationScreen: React.FC = () => {
             {/* Reference Tag */}
             {inspection?.metadata?.reference && (
                 <View style={styles.referenceTag}>
-                    <Text style={styles.referenceIcon}>📍</Text>
+                    <MapPin size={14} color={colors.textSecondary} />
                     <Text style={styles.referenceText}>Ref: {inspection.metadata.reference}</Text>
                 </View>
             )}
@@ -101,7 +103,7 @@ export const ReadingConfirmationScreen: React.FC = () => {
                 <TouchableOpacity
                     style={styles.retakeButton}
                     onPress={handleRetake}>
-                    <Text style={styles.retakeIcon}>🔄</Text>
+                    <RefreshCw size={16} color={colors.text} />
                     <Text style={styles.retakeText}>Retake</Text>
                 </TouchableOpacity>
             </View>
@@ -113,7 +115,7 @@ export const ReadingConfirmationScreen: React.FC = () => {
                     <TouchableOpacity
                         onPress={() => setIsEditing(true)}
                         style={styles.editIcon}>
-                        <Text>✏️</Text>
+                        <Edit2 size={24} color={colors.primary} />
                     </TouchableOpacity>
                     <TextInput
                         style={styles.input}
@@ -140,10 +142,11 @@ export const ReadingConfirmationScreen: React.FC = () => {
                 <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={handleDelete}>
-                    <Text style={styles.deleteIcon}>🗑️</Text>
+                    <Trash2 size={24} color={colors.error} />
                 </TouchableOpacity>
                 <Button
-                    title="✓ Confirm Reading"
+                    title="Confirm Reading"
+                    icon={<Check size={20} color={colors.text} />}
                     onPress={handleConfirm}
                     size="large"
                     style={styles.confirmButton}
@@ -168,10 +171,6 @@ const styles = StyleSheet.create({
     },
     backButton: {
         padding: spacing.sm,
-    },
-    backIcon: {
-        fontSize: 24,
-        color: colors.text,
     },
     headerCenter: {
         flex: 1,
@@ -200,9 +199,6 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.sm,
         gap: spacing.sm,
     },
-    referenceIcon: {
-        fontSize: 14,
-    },
     referenceText: {
         ...typography.caption,
         color: colors.textSecondary,
@@ -230,9 +226,6 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
         borderRadius: borderRadius.md,
         gap: spacing.xs,
-    },
-    retakeIcon: {
-        fontSize: 16,
     },
     retakeText: {
         ...typography.caption,
@@ -301,9 +294,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    deleteIcon: {
-        fontSize: 24,
     },
     confirmButton: {
         flex: 1,
