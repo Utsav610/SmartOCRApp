@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -12,21 +12,24 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { getCellId, getColumnLabel } from '../types/inspection';
 import { Button } from '../components';
-
-import { colors, typography, spacing, borderRadius } from '../theme';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { ArrowLeft, MapPin, RefreshCw, Edit2, Trash2, Check } from 'lucide-react-native';
+import { ActivityIndicator } from 'react-native';
+import OCRModule from '../native-modules/OCRModule';
 
 interface RouteParams {
     row: number;
     column: number;
     imagePath: string;
-    ocrResult: {
+    ocrResult?: {
         value: number;
         confidence: number;
         rawText: string;
     };
 }
+
+import { colors, typography, spacing, borderRadius } from '../theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { ArrowLeft, MapPin, RefreshCw, Edit2, Trash2, Check } from 'lucide-react-native';
+
 
 export const ReadingConfirmationScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -36,8 +39,30 @@ export const ReadingConfirmationScreen: React.FC = () => {
     const { getActiveInspection, updateCellValue } = useInspectionStore();
     const inspection = getActiveInspection();
 
-    const [value, setValue] = useState(ocrResult.value.toString());
+    const [value, setValue] = useState(ocrResult?.value.toString() || '');
     const [isEditing, setIsEditing] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(!ocrResult);
+
+    useEffect(() => {
+        const processImage = async () => {
+            if (ocrResult) return; // Already have result
+
+            try {
+                setIsProcessing(true);
+                const result = await OCRModule.scanMeasurement(imagePath);
+                if (result && result.value !== null) {
+                    setValue(result.value.toString());
+                }
+            } catch (error) {
+                console.error("OCR Error", error);
+                // Optional: Show error to user or let them enter manually
+            } finally {
+                setIsProcessing(false);
+            }
+        };
+
+        processImage();
+    }, [imagePath, ocrResult]);
 
     const cellId = getCellId(row, column);
     const columnLabel = getColumnLabel(column);
@@ -112,21 +137,29 @@ export const ReadingConfirmationScreen: React.FC = () => {
             <View style={styles.readingSection}>
                 <Text style={styles.readingLabel}>THICKNESS READING</Text>
                 <View style={styles.inputContainer}>
-                    <TouchableOpacity
-                        onPress={() => setIsEditing(true)}
-                        style={styles.editIcon}>
-                        <Edit2 size={24} color={colors.primary} />
-                    </TouchableOpacity>
-                    <TextInput
-                        style={styles.input}
-                        value={value}
-                        onChangeText={setValue}
-                        keyboardType="decimal-pad"
-                        editable={isEditing}
-                        onFocus={() => setIsEditing(true)}
-                        onBlur={() => setIsEditing(false)}
-                    />
-                    <Text style={styles.unit}>mm</Text>
+                    {isProcessing ? (
+                        <ActivityIndicator size="small" color={colors.primary} style={{ flex: 1 }} />
+                    ) : (
+                        <>
+                            <TouchableOpacity
+                                onPress={() => setIsEditing(true)}
+                                style={styles.editIcon}>
+                                <Edit2 size={24} color={colors.primary} />
+                            </TouchableOpacity>
+                            <TextInput
+                                style={styles.input}
+                                value={value}
+                                onChangeText={setValue}
+                                keyboardType="decimal-pad"
+                                editable={isEditing}
+                                onFocus={() => setIsEditing(true)}
+                                onBlur={() => setIsEditing(false)}
+                                placeholder={value ? "" : "Enter value"}
+                                placeholderTextColor={colors.textTertiary}
+                            />
+                            <Text style={styles.unit}>mm</Text>
+                        </>
+                    )}
                 </View>
             </View>
 

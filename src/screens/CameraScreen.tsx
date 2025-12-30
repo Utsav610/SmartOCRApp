@@ -41,22 +41,20 @@ export const CameraScreen: React.FC = () => {
         try {
             const photo = await camera.current.takePhoto({
                 flash: flashEnabled ? 'on' : 'off',
-                qualityPrioritization: 'balanced',
+                // qualityPrioritization: 'balanced', // Removed as it causes lint error and might not be supported
+                enableShutterSound: false, // Disabling shutter sound can speed up capture in some cases
             });
 
-            // Process with OCR
-            const result = await OCRModule.scanMeasurement(photo.path);
-
-            // Navigate to confirmation screen
+            // Navigate immediately to confirmation screen
             navigation.navigate('ReadingConfirmation' as never, {
                 row,
                 column,
                 imagePath: photo.path,
-                ocrResult: result,
+                // ocrResult is now optional/undefined initially
             } as never);
         } catch (error) {
             console.error('Capture error:', error);
-            Alert.alert('Error', 'Failed to capture or process image');
+            Alert.alert('Error', 'Failed to capture image');
         } finally {
             setIsCapturing(false);
         }
