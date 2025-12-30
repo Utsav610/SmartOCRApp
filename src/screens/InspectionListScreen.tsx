@@ -20,7 +20,13 @@ import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 export const InspectionListScreen: React.FC = () => {
     const navigation = useNavigation();
-    const { inspections, loadInspections, setActiveInspection, deleteInspection } = useInspectionStore();
+
+    // Optimized selectors
+    const inspections = useInspectionStore(state => state.inspections);
+    const loadInspections = useInspectionStore(state => state.loadInspections);
+    const setActiveInspection = useInspectionStore(state => state.setActiveInspection);
+    const deleteInspection = useInspectionStore(state => state.deleteInspection);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [showNewModal, setShowNewModal] = useState(false);
 

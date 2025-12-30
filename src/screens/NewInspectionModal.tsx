@@ -24,7 +24,10 @@ export const NewInspectionModal: React.FC<NewInspectionModalProps> = ({
     onClose,
 }) => {
     const navigation = useNavigation();
-    const { createInspection, setActiveInspection } = useInspectionStore();
+
+    // Optimized selectors
+    const createInspection = useInspectionStore(state => state.createInspection);
+    const setActiveInspection = useInspectionStore(state => state.setActiveInspection);
 
     const [fileName, setFileName] = useState(`Job-${Date.now()}`);
     const [selectedLayout, setSelectedLayout] = useState<string>('3-column');
