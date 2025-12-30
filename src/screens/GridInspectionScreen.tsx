@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -15,6 +15,69 @@ import { Button, Card } from '../components';
 import { ArrowLeft, Grid3X3, Plus, Minus, Keyboard, Camera, Share } from 'lucide-react-native';
 import { ExportModal } from './ExportModal';
 import { colors, typography, spacing, borderRadius } from '../theme';
+
+
+interface GridCellProps {
+    row: number;
+    column: number;
+    value: number | null;
+    isSelected: boolean;
+    onPress: (row: number, column: number) => void;
+}
+
+const GridCell = React.memo(({ row, column, value, isSelected, onPress }: GridCellProps) => {
+    const hasValue = value !== null;
+    return (
+        <TouchableOpacity
+            style={[
+                styles.gridCell,
+                isSelected && styles.gridCell_selected,
+                hasValue && styles.gridCell_filled,
+            ]}
+            onPress={() => onPress(row, column)}
+            activeOpacity={0.7}>
+            {hasValue ? (
+                <View style={styles.cellContent}>
+                    <Text style={styles.cellValue}>{value?.toFixed(3)}</Text>
+                    <View style={styles.cellIndicator} />
+                </View>
+            ) : (
+                <Minus size={24} color={colors.textTertiary} />
+            )}
+        </TouchableOpacity>
+    );
+}, (prev, next) => {
+    return prev.value === next.value && prev.isSelected === next.isSelected && prev.row === next.row && prev.column === next.column;
+});
+
+interface GridRowProps {
+    row: (number | null)[];
+    rowIdx: number;
+    selectedCol: number | undefined;
+    onPressCell: (row: number, column: number) => void;
+}
+
+const GridRow = React.memo(({ row, rowIdx, selectedCol, onPressCell }: GridRowProps) => {
+    return (
+        <View style={styles.gridRow}>
+            <View style={styles.gridRowHeader}>
+                <Text style={styles.gridRowText}>{rowIdx + 1}</Text>
+            </View>
+            {row.map((value, colIdx) => (
+                <GridCell
+                    key={colIdx}
+                    row={rowIdx}
+                    column={colIdx}
+                    value={value}
+                    isSelected={selectedCol === colIdx}
+                    onPress={onPressCell}
+                />
+            ))}
+        </View>
+    );
+}, (prev, next) => {
+    return prev.row === next.row && prev.selectedCol === next.selectedCol;
+});
 
 export const GridInspectionScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -39,10 +102,21 @@ export const GridInspectionScreen: React.FC = () => {
 
     const { gridConfig, matrixValues, name, metadata, imageReferences } = inspection;
 
-    const handleCellPress = (row: number, column: number) => {
+    const matrixValuesRef = useRef(matrixValues);
+    const imageReferencesRef = useRef(imageReferences);
+
+    useEffect(() => {
+        matrixValuesRef.current = matrixValues;
+        imageReferencesRef.current = imageReferences;
+    }, [matrixValues, imageReferences]);
+
+    const handleCellPress = useCallback((row: number, column: number) => {
         setSelectedCell({ row, column });
 
-        const existingValue = matrixValues[row][column];
+        const currentValues = matrixValuesRef.current;
+        const currentImages = imageReferencesRef.current;
+
+        const existingValue = currentValues[row][column];
         const cellId = getCellId(row, column);
 
         if (existingValue !== null) {
@@ -50,10 +124,10 @@ export const GridInspectionScreen: React.FC = () => {
             (navigation as any).navigate('ReadingConfirmation', {
                 row,
                 column,
-                imagePath: imageReferences?.[cellId] || '',
+                imagePath: currentImages?.[cellId] || '',
                 ocrResult: {
                     value: existingValue,
-                    confidence: 1.0, // Mock confidence for manual/existing entries
+                    confidence: 1.0,
                     rawText: existingValue.toString(),
                 },
             });
@@ -61,7 +135,7 @@ export const GridInspectionScreen: React.FC = () => {
             // New reading -> Camera
             (navigation as any).navigate('Camera', { row, column });
         }
-    };
+    }, [navigation]);
 
     const handleManualEntry = () => {
         if (selectedCell) {
@@ -69,33 +143,7 @@ export const GridInspectionScreen: React.FC = () => {
         }
     };
 
-    const renderGridCell = (row: number, column: number) => {
-        const value = matrixValues[row][column];
-        const cellId = getCellId(row, column);
-        const isSelected = selectedCell?.row === row && selectedCell?.column === column;
-        const hasValue = value !== null;
 
-        return (
-            <TouchableOpacity
-                key={cellId}
-                style={[
-                    styles.gridCell,
-                    isSelected && styles.gridCell_selected,
-                    hasValue && styles.gridCell_filled,
-                ]}
-                onPress={() => handleCellPress(row, column)}
-                activeOpacity={0.7}>
-                {hasValue ? (
-                    <View style={styles.cellContent}>
-                        <Text style={styles.cellValue}>{value.toFixed(3)}</Text>
-                        <View style={styles.cellIndicator} />
-                    </View>
-                ) : (
-                    <Minus size={24} color={colors.textTertiary} />
-                )}
-            </TouchableOpacity>
-        );
-    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -162,14 +210,13 @@ export const GridInspectionScreen: React.FC = () => {
                             </View>
 
                             {matrixValues.map((row, rowIdx) => (
-                                <View key={rowIdx} style={styles.gridRow}>
-                                    {/* Row Number */}
-                                    <View style={styles.gridRowHeader}>
-                                        <Text style={styles.gridRowText}>{rowIdx + 1}</Text>
-                                    </View>
-                                    {/* Row Cells */}
-                                    {row.map((_, colIdx) => renderGridCell(rowIdx, colIdx))}
-                                </View>
+                                <GridRow
+                                    key={rowIdx}
+                                    row={row}
+                                    rowIdx={rowIdx}
+                                    selectedCol={selectedCell?.row === rowIdx ? selectedCell.column : undefined}
+                                    onPressCell={handleCellPress}
+                                />
                             ))}
                         </View>
                     </ScrollView>
