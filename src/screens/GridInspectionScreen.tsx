@@ -89,32 +89,26 @@ export const GridInspectionScreen: React.FC = () => {
 
     const [selectedCell, setSelectedCell] = useState<{ row: number; column: number } | null>(null);
     const [isExportModalVisible, setIsExportModalVisible] = useState(false);
-    console.log('isExportModalVisible', isExportModalVisible);
 
+    // Hooks must be called unconditionally
+    const inspectionMatrixValues = inspection?.matrixValues;
+    const inspectionImageReferences = inspection?.imageReferences;
 
-    if (!inspection) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <Text style={styles.errorText}>No active inspection</Text>
-            </SafeAreaView>
-        );
-    }
-
-    const { gridConfig, matrixValues, name, metadata, imageReferences } = inspection;
-
-    const matrixValuesRef = useRef(matrixValues);
-    const imageReferencesRef = useRef(imageReferences);
+    const matrixValuesRef = useRef(inspectionMatrixValues);
+    const imageReferencesRef = useRef(inspectionImageReferences);
 
     useEffect(() => {
-        matrixValuesRef.current = matrixValues;
-        imageReferencesRef.current = imageReferences;
-    }, [matrixValues, imageReferences]);
+        matrixValuesRef.current = inspectionMatrixValues;
+        imageReferencesRef.current = inspectionImageReferences;
+    }, [inspectionMatrixValues, inspectionImageReferences]);
 
     const handleCellPress = useCallback((row: number, column: number) => {
         setSelectedCell({ row, column });
 
         const currentValues = matrixValuesRef.current;
         const currentImages = imageReferencesRef.current;
+
+        if (!currentValues) return;
 
         const existingValue = currentValues[row][column];
         const cellId = getCellId(row, column);
@@ -142,6 +136,16 @@ export const GridInspectionScreen: React.FC = () => {
             (navigation as any).navigate('ManualEntry', selectedCell);
         }
     };
+
+    if (!inspection) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <Text style={styles.errorText}>No active inspection</Text>
+            </SafeAreaView>
+        );
+    }
+
+    const { gridConfig, name, metadata, matrixValues } = inspection;
 
 
 
