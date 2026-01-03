@@ -6,11 +6,13 @@ import {
     Text,
     Alert,
     ActivityIndicator,
+    useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, PhotoFile, useCameraPermission } from 'react-native-vision-camera';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, borderRadius } from '../theme';
+import { getColumnLabel } from '../types/inspection';
 import RNFS from 'react-native-fs';
 import OCRModule from '../native-modules/OCRModule';
 import { ArrowLeft, Zap, ZapOff } from 'lucide-react-native';
@@ -27,6 +29,9 @@ export const CameraScreen: React.FC = () => {
     const [flashEnabled, setFlashEnabled] = useState(false);
     const [isCapturing, setIsCapturing] = useState(false);
 
+    const { width } = useWindowDimensions();
+    const camSize = width * 0.5;
+
     useEffect(() => {
         if (!hasPermission) {
             requestPermission();
@@ -41,8 +46,7 @@ export const CameraScreen: React.FC = () => {
         try {
             const photo = await camera.current.takePhoto({
                 flash: flashEnabled ? 'on' : 'off',
-                // qualityPrioritization: 'balanced', // Removed as it causes lint error and might not be supported
-                enableShutterSound: false, // Disabling shutter sound can speed up capture in some cases
+                enableShutterSound: false,
             });
 
             // Navigate immediately to confirmation screen
@@ -50,7 +54,6 @@ export const CameraScreen: React.FC = () => {
                 row,
                 column,
                 imagePath: photo.path,
-                // ocrResult is now optional/undefined initially
             } as never);
         } catch (error) {
             console.error('Capture error:', error);
@@ -77,123 +80,119 @@ export const CameraScreen: React.FC = () => {
     }
 
     return (
-        <View style={styles.container}>
-            <Camera
-                ref={camera}
-                style={StyleSheet.absoluteFill}
-                device={device}
-                isActive={true}
-                photo={true}
-            />
+        <SafeAreaView style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.headerButton}>
+                    <ArrowLeft size={24} color="white" />
+                </TouchableOpacity>
 
-            {/* Overlay */}
-            <SafeAreaView style={styles.overlay}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        style={styles.backButton}>
-                        <ArrowLeft size={24} color="white" />
-                    </TouchableOpacity>
-                    <View style={styles.spacer} />
-                    <TouchableOpacity
-                        onPress={() => setFlashEnabled(!flashEnabled)}
-                        style={styles.flashButton}>
-                        {flashEnabled ? (
-                            <Zap size={24} color={colors.primary} />
-                        ) : (
-                            <ZapOff size={24} color="white" />
-                        )}
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.headerTitle}>Scan {getColumnLabel(column)}-{row + 1}</Text>
 
-                {/* Scan Frame */}
-                <View style={styles.scanFrame}>
+                <TouchableOpacity
+                    onPress={() => setFlashEnabled(!flashEnabled)}
+                    style={styles.headerButton}>
+                    {flashEnabled ? (
+                        <Zap size={24} color={colors.primary} />
+                    ) : (
+                        <ZapOff size={24} color="white" />
+                    )}
+                </TouchableOpacity>
+            </View>
+
+            {/* Centered Camera View */}
+            <View style={styles.cameraContainer}>
+                <View style={[styles.cameraFrame, { width: camSize, height: camSize }]}>
+                    <Camera
+                        ref={camera}
+                        style={StyleSheet.absoluteFill}
+                        device={device}
+                        isActive={true}
+                        photo={true}
+                        resizeMode="cover"
+                    />
+                    {/* Visual corners to indicate active area */}
                     <View style={[styles.corner, styles.cornerTopLeft]} />
                     <View style={[styles.corner, styles.cornerTopRight]} />
                     <View style={[styles.corner, styles.cornerBottomLeft]} />
                     <View style={[styles.corner, styles.cornerBottomRight]} />
                 </View>
+                <Text style={styles.instructionText}>Hold steady to capture</Text>
+            </View>
 
-                {/* Instruction */}
-                <View style={styles.instructionContainer}>
-                    <Text style={styles.instructionText}>Hold steady to capture</Text>
-                </View>
-
-                {/* Capture Button */}
-                <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={styles.captureButton}
-                        onPress={handleCapture}
-                        disabled={isCapturing}>
-                        {isCapturing ? (
-                            <ActivityIndicator size="large" color={colors.primary} />
-                        ) : (
-                            <View style={styles.captureButtonInner} />
-                        )}
-                    </TouchableOpacity>
-                </View>
-            </SafeAreaView>
-        </View>
+            {/* Footer / Capture */}
+            <View style={styles.footer}>
+                <TouchableOpacity
+                    style={styles.captureButton}
+                    onPress={handleCapture}
+                    disabled={isCapturing}>
+                    {isCapturing ? (
+                        <ActivityIndicator size="large" color={colors.primary} />
+                    ) : (
+                        <View style={styles.captureButtonInner} />
+                    )}
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: 'black',
     },
     permissionText: {
         ...typography.h3,
-        color: colors.textSecondary,
+        color: 'white',
         textAlign: 'center',
         marginTop: spacing.xxxl,
     },
-    overlay: {
-        flex: 1,
-    },
     header: {
         flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.lg,
+        zIndex: 10,
     },
-    backButton: {
+    headerButton: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: colors.overlay,
+        backgroundColor: 'rgba(255,255,255,0.2)',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    backIcon: {
-        // Removed as it is replaced by Lucide icon
+    headerTitle: {
+        ...typography.h3,
+        color: 'white',
     },
-    spacer: {
+    cameraContainer: {
         flex: 1,
-    },
-    flashButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: colors.overlay,
         alignItems: 'center',
         justifyContent: 'center',
+        gap: spacing.xl,
     },
-    flashIcon: {
-        // Removed as it is replaced by Lucide icon
+    cameraFrame: {
+        borderRadius: borderRadius.lg,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
+        position: 'relative',
     },
-    scanFrame: {
-        position: 'absolute',
-        top: '30%',
-        left: '10%',
-        right: '10%',
-        height: 200,
+    instructionText: {
+        ...typography.body,
+        color: 'rgba(255,255,255,0.8)',
+        textAlign: 'center',
     },
     corner: {
         position: 'absolute',
-        width: 40,
-        height: 40,
+        width: 20,
+        height: 20,
         borderColor: colors.primary,
         borderWidth: 3,
     },
@@ -202,56 +201,39 @@ const styles = StyleSheet.create({
         left: 0,
         borderRightWidth: 0,
         borderBottomWidth: 0,
-        borderTopLeftRadius: borderRadius.md,
+        borderTopLeftRadius: borderRadius.lg, // Match container radius
     },
     cornerTopRight: {
         top: 0,
         right: 0,
         borderLeftWidth: 0,
         borderBottomWidth: 0,
-        borderTopRightRadius: borderRadius.md,
+        borderTopRightRadius: borderRadius.lg,
     },
     cornerBottomLeft: {
         bottom: 0,
         left: 0,
         borderRightWidth: 0,
         borderTopWidth: 0,
-        borderBottomLeftRadius: borderRadius.md,
+        borderBottomLeftRadius: borderRadius.lg,
     },
     cornerBottomRight: {
         bottom: 0,
         right: 0,
         borderLeftWidth: 0,
         borderTopWidth: 0,
-        borderBottomRightRadius: borderRadius.md,
-    },
-    instructionContainer: {
-        position: 'absolute',
-        bottom: 150,
-        left: 0,
-        right: 0,
-        alignItems: 'center',
-    },
-    instructionText: {
-        ...typography.body,
-        color: colors.text,
-        backgroundColor: colors.overlay,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.md,
+        borderBottomRightRadius: borderRadius.lg,
     },
     footer: {
-        position: 'absolute',
-        bottom: spacing.xxxl,
-        left: 0,
-        right: 0,
+        paddingVertical: spacing.xxxl,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     captureButton: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: colors.text,
+        backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 4,

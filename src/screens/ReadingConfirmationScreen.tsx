@@ -6,14 +6,18 @@ import {
     Image,
     TouchableOpacity,
     TextInput,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useInspectionStore } from '../store/inspectionStore';
 import { getCellId, getColumnLabel } from '../types/inspection';
 import { Button } from '../components';
-import { ActivityIndicator } from 'react-native';
 import OCRModule from '../native-modules/OCRModule';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { colors, typography, spacing, borderRadius } from '../theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { ArrowLeft, MapPin, RefreshCw, Edit2, Trash2, Check } from 'lucide-react-native';
 
 interface RouteParams {
     row: number;
@@ -25,11 +29,6 @@ interface RouteParams {
         rawText: string;
     };
 }
-
-import { colors, typography, spacing, borderRadius } from '../theme';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { ArrowLeft, MapPin, RefreshCw, Edit2, Trash2, Check } from 'lucide-react-native';
-
 
 export const ReadingConfirmationScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -114,61 +113,71 @@ export const ReadingConfirmationScreen: React.FC = () => {
                 <View style={styles.spacer} />
             </View>
 
-            {/* Reference Tag */}
-            {inspection?.metadata?.reference && (
-                <View style={styles.referenceTag}>
-                    <MapPin size={14} color={colors.textSecondary} />
-                    <Text style={styles.referenceText}>Ref: {inspection.metadata.reference}</Text>
-                </View>
-            )}
+            <KeyboardAwareScrollView
+                contentContainerStyle={{ paddingBottom: 100 }}
+                enableOnAndroid={true}
+                extraScrollHeight={20}
+                keyboardShouldPersistTaps="handled"
+                style={styles.scrollContainer}
+            >
+                {/* Reference Tag */}
+                {inspection?.metadata?.reference && (
+                    <View style={styles.referenceTag}>
+                        <MapPin size={14} color={colors.textSecondary} />
+                        <Text style={styles.referenceText}>Ref: {inspection.metadata.reference}</Text>
+                    </View>
+                )}
 
-            {/* Image Preview */}
-            <View style={styles.imageContainer}>
-                <Image source={{ uri: `file://${imagePath}` }} style={styles.image} />
+                {/* Image Preview */}
+                <View style={styles.imageContainer}>
+                    <Image source={{ uri: `file://${imagePath}` }} style={styles.image} />
+                    <TouchableOpacity
+                        style={styles.retakeButton}
+                        onPress={handleRetake}>
+                        <RefreshCw size={16} color={colors.text} />
+                        <Text style={styles.retakeText}>Retake</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Reading Input */}
+                <View style={styles.readingSection}>
+                    <Text style={styles.readingLabel}>THICKNESS READING</Text>
+                    {/* Debug: Show raw text */}
+                    <Text style={styles.debugText}>Raw: {ocrResult?.rawText || 'Scanning...'}</Text>
+                    <View style={styles.inputContainer}>
+                        {isProcessing ? (
+                            <ActivityIndicator size="small" color={colors.primary} style={{ flex: 1 }} />
+                        ) : (
+                            <>
+                                <TouchableOpacity
+                                    onPress={() => setIsEditing(true)}
+                                    style={styles.editIcon}>
+                                    <Edit2 size={24} color={colors.primary} />
+                                </TouchableOpacity>
+                                <TextInput
+                                    style={styles.input}
+                                    value={value}
+                                    onChangeText={setValue}
+                                    keyboardType="decimal-pad"
+                                    editable={isEditing}
+                                    onFocus={() => setIsEditing(true)}
+                                    onBlur={() => setIsEditing(false)}
+                                    placeholder={value ? "" : "Enter value"}
+                                    placeholderTextColor={colors.textTertiary}
+                                />
+                                <Text style={styles.unit}>mm</Text>
+                            </>
+                        )}
+                    </View>
+                </View>
+
+                {/* Manual Entry Link */}
                 <TouchableOpacity
-                    style={styles.retakeButton}
-                    onPress={handleRetake}>
-                    <RefreshCw size={16} color={colors.text} />
-                    <Text style={styles.retakeText}>Retake</Text>
+                    style={styles.manualEntryLink}
+                    onPress={() => navigation.navigate('ManualEntry' as never, { row, column } as never)}>
+                    <Text style={styles.manualEntryText}>Switch to Manual Entry</Text>
                 </TouchableOpacity>
-            </View>
-
-            {/* Reading Input */}
-            <View style={styles.readingSection}>
-                <Text style={styles.readingLabel}>THICKNESS READING</Text>
-                <View style={styles.inputContainer}>
-                    {isProcessing ? (
-                        <ActivityIndicator size="small" color={colors.primary} style={{ flex: 1 }} />
-                    ) : (
-                        <>
-                            <TouchableOpacity
-                                onPress={() => setIsEditing(true)}
-                                style={styles.editIcon}>
-                                <Edit2 size={24} color={colors.primary} />
-                            </TouchableOpacity>
-                            <TextInput
-                                style={styles.input}
-                                value={value}
-                                onChangeText={setValue}
-                                keyboardType="decimal-pad"
-                                editable={isEditing}
-                                onFocus={() => setIsEditing(true)}
-                                onBlur={() => setIsEditing(false)}
-                                placeholder={value ? "" : "Enter value"}
-                                placeholderTextColor={colors.textTertiary}
-                            />
-                            <Text style={styles.unit}>mm</Text>
-                        </>
-                    )}
-                </View>
-            </View>
-
-            {/* Manual Entry Link */}
-            <TouchableOpacity
-                style={styles.manualEntryLink}
-                onPress={() => navigation.navigate('ManualEntry' as never, { row, column } as never)}>
-                <Text style={styles.manualEntryText}>Switch to Manual Entry</Text>
-            </TouchableOpacity>
+            </KeyboardAwareScrollView>
 
             {/* Footer Buttons */}
             <View style={styles.footer}>
@@ -193,6 +202,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    scrollContainer: {
+        flex: 1,
     },
     header: {
         flexDirection: 'row',
@@ -272,6 +284,11 @@ const styles = StyleSheet.create({
     readingLabel: {
         ...typography.label,
         color: colors.primary,
+        marginBottom: spacing.xs,
+    },
+    debugText: {
+        ...typography.captionSmall,
+        color: colors.textTertiary,
         marginBottom: spacing.md,
     },
     inputContainer: {
