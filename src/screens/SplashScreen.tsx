@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import {
     View,
@@ -8,12 +9,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing } from '../theme';
+import { useAuthStore } from '../store/authStore';
 
 export const SplashScreen: React.FC = () => {
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
     const fadeAnim = new Animated.Value(0);
     const scaleAnim = new Animated.Value(0.9);
+    const { checkAuth } = useAuthStore();
 
     useEffect(() => {
         // Start animations
@@ -30,16 +33,29 @@ export const SplashScreen: React.FC = () => {
             }),
         ]).start();
 
-        // Navigate to Home (InspectionList) after delay
-        const timer = setTimeout(() => {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'InspectionList' as never }],
-            });
-        }, 2000);
+        const init = async () => {
+            // Check authentication
+            const isAuthenticated = await checkAuth();
 
+            // Minimal delay for splash effect
+            setTimeout(() => {
+                if (isAuthenticated) {
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'InspectionList' as never }],
+                    });
+                } else {
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Login' as never }],
+                    });
+                }
+            }, 2000);
+        };
+
+        const timer = setTimeout(init, 100); // Start init
         return () => clearTimeout(timer);
-    }, []);
+    }, [navigation, checkAuth]);
 
     return (
         <View style={styles.container}>

@@ -7,6 +7,7 @@ import { CameraScreen } from '../screens/CameraScreen';
 import { ReadingConfirmationScreen } from '../screens/ReadingConfirmationScreen';
 import { ManualEntryModal } from '../screens/ManualEntryModal';
 import { SplashScreen } from '../screens/SplashScreen';
+import { LoginScreen } from '../screens/LoginScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,10 @@ export const AppNavigator: React.FC = () => {
                 <Stack.Screen
                     name="Splash"
                     component={SplashScreen}
+                />
+                <Stack.Screen
+                    name="Login"
+                    component={LoginScreen}
                 />
                 <Stack.Screen
                     name="InspectionList"
