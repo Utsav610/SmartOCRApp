@@ -6,6 +6,11 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 
 class OCRModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -69,8 +74,11 @@ class OCRModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
             }
 
             // 4. Process with MLKit
+            // Enhance image for better contrast (helps with decimals and black font)
+            val enhancedBitmap = enhanceBitmap(croppedBitmap)
+
             // We must pass the rotation metadata because we cropped the raw image.
-            val image = InputImage.fromBitmap(croppedBitmap, rotationDegrees)
+            val image = InputImage.fromBitmap(enhancedBitmap, rotationDegrees)
             val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
             recognizer.process(image)
@@ -105,5 +113,38 @@ class OCRModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
         } catch (e: Exception) {
             promise.reject("ERROR", e.message, e)
         }
+    }
+
+    private fun enhanceBitmap(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        val c = Canvas(bmpGrayscale)
+        val paint = Paint()
+
+        // 1. Grayscale
+        val cm = ColorMatrix()
+        cm.setSaturation(0f)
+
+        // 2. High Contrast
+        // Scale factor: > 1 increases contrast. 1.5 - 2.0 is usually good for text.
+        val contrast = 2.0f
+        val offset = -128f * (contrast - 1f)
+        
+        val cmContrast = ColorMatrix(floatArrayOf(
+            contrast, 0f, 0f, 0f, offset,
+            0f, contrast, 0f, 0f, offset,
+            0f, 0f, contrast, 0f, offset,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        
+        cm.postConcat(cmContrast)
+
+        val f = ColorMatrixColorFilter(cm)
+        paint.colorFilter = f
+        c.drawBitmap(bitmap, 0f, 0f, paint)
+
+        return bmpGrayscale
     }
 }
