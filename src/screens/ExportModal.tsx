@@ -24,8 +24,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     onClose,
     inspectionId,
 }) => {
-    const { getInspection } = useInspectionStore();
-    const inspection = getInspection(inspectionId);
+    const inspection = useInspectionStore(state => state.inspections.find(i => i.id === inspectionId));
     const [isExporting, setIsExporting] = useState(false);
 
     if (!inspection) return null;

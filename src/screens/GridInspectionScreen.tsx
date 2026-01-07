@@ -86,7 +86,7 @@ export const GridInspectionScreen: React.FC = () => {
         state.inspections.find(i => i.id === state.activeInspectionId)
     );
 
-    console.log('inspection', inspection);
+
 
 
     const addRow = useInspectionStore(state => state.addRow);

@@ -35,8 +35,8 @@ export const ReadingConfirmationScreen: React.FC = () => {
     const route = useRoute();
     const { row, column, imagePath, ocrResult } = route.params as RouteParams;
 
-    const { getActiveInspection, updateCellValue } = useInspectionStore();
-    const inspection = getActiveInspection();
+    const updateCellValue = useInspectionStore(state => state.updateCellValue);
+    const inspection = useInspectionStore(state => state.inspections.find(i => i.id === state.activeInspectionId));
 
     const [value, setValue] = useState(ocrResult?.value.toString() || '');
     const [isEditing, setIsEditing] = useState(false);
