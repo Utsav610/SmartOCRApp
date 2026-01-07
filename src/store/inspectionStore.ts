@@ -6,6 +6,7 @@ interface InspectionStore {
     inspections: Inspection[];
     activeInspectionId: string | null;
     autoAdvance: boolean;
+    lastCropRegion?: { x: number; y: number; width: number; height: number; normalized?: boolean };
 
     // Actions
     loadInspections: () => Promise<void>;
@@ -16,6 +17,7 @@ interface InspectionStore {
     updateCellValue: (inspectionId: string, row: number, column: number, value: number | null, imagePath?: string) => Promise<void>;
     addRow: (inspectionId: string) => Promise<void>;
     setAutoAdvance: (enabled: boolean) => Promise<void>;
+    setLastCropRegion: (region: { x: number; y: number; width: number; height: number; normalized?: boolean } | undefined) => Promise<void>;
     getInspection: (id: string) => Inspection | undefined;
     getActiveInspection: () => Inspection | undefined;
 }
@@ -24,11 +26,14 @@ export const useInspectionStore = create<InspectionStore>((set, get) => ({
     inspections: [],
     activeInspectionId: null,
     autoAdvance: true,
+    lastCropRegion: undefined,
 
     loadInspections: async () => {
         const data = await getData('inspections');
         const inspections = data ? JSON.parse(data) : [];
-        set({ inspections });
+        const cropData = await getData('lastCropRegion');
+        const lastCropRegion = cropData ? JSON.parse(cropData) : undefined;
+        set({ inspections, lastCropRegion });
     },
 
     createInspection: async (name: string, gridConfig: GridConfig, metadata?: Inspection['metadata']) => {
@@ -127,6 +132,13 @@ export const useInspectionStore = create<InspectionStore>((set, get) => ({
     setAutoAdvance: async (enabled: boolean) => {
         set({ autoAdvance: enabled });
         // Optional: Persist settings if storage supports it
+    },
+
+    setLastCropRegion: async (region) => {
+        set({ lastCropRegion: region });
+        if (region) {
+            await storeData('lastCropRegion', region);
+        }
     },
 
     getInspection: (id: string) => {

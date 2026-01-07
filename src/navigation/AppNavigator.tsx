@@ -8,6 +8,7 @@ import { ReadingConfirmationScreen } from '../screens/ReadingConfirmationScreen'
 import { ManualEntryModal } from '../screens/ManualEntryModal';
 import { SplashScreen } from '../screens/SplashScreen';
 import { LoginScreen } from '../screens/LoginScreen';
+import { CropScreen } from '../screens/CropScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +40,13 @@ export const AppNavigator: React.FC = () => {
                 <Stack.Screen
                     name="Camera"
                     component={CameraScreen}
+                    options={{
+                        animation: 'fade',
+                    }}
+                />
+                <Stack.Screen
+                    name="Crop"
+                    component={CropScreen}
                     options={{
                         animation: 'fade',
                     }}

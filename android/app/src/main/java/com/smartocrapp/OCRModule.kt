@@ -52,30 +52,23 @@ class OCRModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
                 else -> 0
             }
 
-            // 2. Define ROI (Center 50%)
-            // We crop the center 50% of the text.
-            // Since we want "half width and half height", we take the middle half.
-            val cropWidth = width / 2
-            val cropHeight = height / 2
-            val startX = (width - cropWidth) / 2
-            val startY = (height - cropHeight) / 2
+            // 2. Define ROI (Full Image)
+            // Requirement changed: The input image is already cropped or we want to scan the full image.
+            // We no longer apply a fixed 50% crop here.
             
-            val rect = android.graphics.Rect(startX, startY, startX + cropWidth, startY + cropHeight)
+            // 3. Decode Full Image
+            val bitmap = android.graphics.BitmapFactory.decodeFile(cleanPath)
 
-            // 3. Decode Region
-            val inputStream = java.io.FileInputStream(cleanPath)
-            val decoder = android.graphics.BitmapRegionDecoder.newInstance(inputStream, false)
-            val croppedBitmap = decoder?.decodeRegion(rect, null)
-            inputStream.close()
-
-            if (croppedBitmap == null) {
-                 promise.reject("DECODE_ERROR", "Failed to decode image region")
+            if (bitmap == null) {
+                 promise.reject("DECODE_ERROR", "Failed to decode image")
                  return
             }
 
+
+
             // 4. Process with MLKit
             // Enhance image for better contrast (helps with decimals and black font)
-            val enhancedBitmap = enhanceBitmap(croppedBitmap)
+            val enhancedBitmap = enhanceBitmap(bitmap)
 
             // We must pass the rotation metadata because we cropped the raw image.
             val image = InputImage.fromBitmap(enhancedBitmap, rotationDegrees)
@@ -112,6 +105,54 @@ class OCRModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
                 }
         } catch (e: Exception) {
             promise.reject("ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun cropImage(imagePath: String?, x: Double, y: Double, width: Double, height: Double, promise: Promise) {
+        if (imagePath == null) {
+            promise.reject("INVALID_PATH", "Image path cannot be null")
+            return
+        }
+        try {
+            val cleanPath = imagePath.replace("file://", "")
+            val file = File(cleanPath)
+            if (!file.exists()) {
+                promise.reject("FILE_NOT_FOUND", "Image file not found at $imagePath")
+                return
+            }
+
+            // 1. Decode original dimensions to calculate scale if needed
+            // But usually coordinates are passed relative to the image size.
+            // CAUTION: React Native usually passes coordinates relative to the DISPLAYED size.
+            // Ideally the JS side should pass coordinates relative to the ACTUAL image size,
+            // or we need to know the displayed size.
+            // Assumption: JS side calculates coordinates relative to the ACTUAL image size.
+
+            val rect = android.graphics.Rect(x.toInt(), y.toInt(), (x + width).toInt(), (y + height).toInt())
+
+            // 2. Decode Region
+            val inputStream = java.io.FileInputStream(cleanPath)
+            val decoder = android.graphics.BitmapRegionDecoder.newInstance(inputStream, false)
+            val croppedBitmap = decoder?.decodeRegion(rect, null)
+            inputStream.close()
+
+            if (croppedBitmap == null) {
+                promise.reject("DECODE_ERROR", "Failed to decode image region")
+                return
+            }
+
+            // 3. Save to new temp file
+            val cacheDir = reactApplicationContext.cacheDir
+            val outputFile = File.createTempFile("crop_", ".jpg", cacheDir)
+            val outputStream = java.io.FileOutputStream(outputFile)
+            croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+            outputStream.close()
+
+            promise.resolve("file://${outputFile.absolutePath}")
+
+        } catch (e: Exception) {
+            promise.reject("CROP_ERROR", e.message, e)
         }
     }
 

@@ -49,11 +49,12 @@ export const CameraScreen: React.FC = () => {
                 enableShutterSound: false,
             });
 
-            // Navigate immediately to confirmation screen
-            navigation.navigate('ReadingConfirmation' as never, {
+            navigation.navigate('Crop' as never, {
                 row,
                 column,
                 imagePath: photo.path,
+                width: photo.width,
+                height: photo.height,
             } as never);
         } catch (error) {
             console.error('Capture error:', error);

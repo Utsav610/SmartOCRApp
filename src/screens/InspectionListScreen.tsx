@@ -142,6 +142,11 @@ export const InspectionListScreen: React.FC = () => {
                 data={filteredInspections}
                 renderItem={renderInspectionCard}
                 keyExtractor={item => item.id}
+                ListFooterComponent={
+                    <View style={{
+                        paddingBottom: 50,
+                    }} />
+                }
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
