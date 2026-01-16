@@ -1,30 +1,58 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import DeviceInfo from 'react-native-device-info';
+
+interface User {
+    id: string;
+    username: string;
+    role: string;
+    companies: any[];
+}
 
 interface AuthState {
     accessToken: string | null;
+    user: User | null;
     loginTimestamp: number | null;
     isLoading: boolean;
     error: string | null;
 
-    login: (email: string, pass: string) => Promise<boolean>;
+    login: (username: string, pass: string) => Promise<boolean>;
     checkAuth: () => Promise<boolean>;
     logout: () => Promise<void>;
 }
 
-// Mock API Call
-const mockLoginApi = async (email: string, pass: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (email && pass) {
-                // Return a fake JWT token
-                resolve("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake-token");
-            } else {
-                reject("Invalid credentials");
-            }
-        }, 1000);
-    });
+const BASE_URL = 'http://ocr.astram.tech.dedi6594.your-server.de';
+
+const loginApi = async (username: string, pass: string): Promise<{ accessToken: string; user: User }> => {
+    try {
+        const deviceName = await DeviceInfo.getDeviceName();
+        console.log('device name', deviceName);
+
+        const response = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                password: pass,
+                deviceId: deviceName || "mobile-app-device",
+            }),
+        });
+
+        const data = await response.json();
+        console.log('data', data);
+
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Login failed');
+        }
+
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message || 'Network error');
+    }
 };
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -33,25 +61,27 @@ export const useAuthStore = create<AuthState>()(
     persist(
         (set, get) => ({
             accessToken: null,
+            user: null,
             loginTimestamp: null,
             isLoading: false,
             error: null,
 
-            login: async (email, pass) => {
+            login: async (username, pass) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const token = await mockLoginApi(email, pass);
+                    const { accessToken, user } = await loginApi(username, pass);
                     const timestamp = Date.now();
 
                     set({
-                        accessToken: token,
+                        accessToken: accessToken,
+                        user: user,
                         loginTimestamp: timestamp,
                         isLoading: false
                     });
                     return true;
-                } catch (e) {
+                } catch (e: any) {
                     set({
-                        error: "Login failed. Please check your credentials.",
+                        error: e.message || "Login failed. Please check your credentials.",
                         isLoading: false
                     });
                     return false;
@@ -70,7 +100,7 @@ export const useAuthStore = create<AuthState>()(
 
                 if (!isValid) {
                     // Token expired
-                    set({ accessToken: null, loginTimestamp: null });
+                    set({ accessToken: null, user: null, loginTimestamp: null });
                     return false;
                 }
 
@@ -78,7 +108,7 @@ export const useAuthStore = create<AuthState>()(
             },
 
             logout: async () => {
-                set({ accessToken: null, loginTimestamp: null });
+                set({ accessToken: null, user: null, loginTimestamp: null });
                 await AsyncStorage.removeItem('auth-storage');
             }
         }),

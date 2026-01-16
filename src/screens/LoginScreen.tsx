@@ -14,22 +14,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/authStore';
 import { colors, typography, spacing, borderRadius } from '../theme';
 import { useNavigation } from '@react-navigation/native';
-import { Mail, Lock, LogIn } from 'lucide-react-native';
+import { User, Lock, LogIn } from 'lucide-react-native';
 
 export const LoginScreen: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const { login, isLoading, error } = useAuthStore();
     const navigation = useNavigation();
 
     const handleLogin = async () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Please enter both email and password');
+        if (!username || !password) {
+            Alert.alert('Error', 'Please enter both username and password');
             return;
         }
 
-        const success = await login(email, password);
+        const success = await login(username, password);
         if (success) {
             // Navigation to 'InspectionList' will be handled typically 
             // by the stack navigator or explicit call here if needed,
@@ -60,15 +60,14 @@ export const LoginScreen: React.FC = () => {
                     {/* Form */}
                     <View style={styles.form}>
                         <View style={styles.inputContainer}>
-                            <Mail size={20} color={colors.textSecondary} style={styles.icon} />
+                            <User size={20} color={colors.textSecondary} style={styles.icon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Email"
+                                placeholder="Username"
                                 placeholderTextColor={colors.textTertiary}
-                                value={email}
-                                onChangeText={setEmail}
+                                value={username}
+                                onChangeText={setUsername}
                                 autoCapitalize="none"
-                                keyboardType="email-address"
                             />
                         </View>
 

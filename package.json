@@ -19,6 +19,7 @@
     "lucide-react-native": "^0.562.0",
     "react": "19.2.0",
     "react-native": "0.83.1",
+    "react-native-device-info": "^15.0.1",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.21.2",
     "react-native-haptic-feedback": "^2.2.0",
