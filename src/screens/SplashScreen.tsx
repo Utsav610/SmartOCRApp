@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -12,14 +11,19 @@ import { colors, typography, spacing } from '../theme';
 import { useAuthStore } from '../store/authStore';
 
 export const SplashScreen: React.FC = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     const { width } = useWindowDimensions();
-    const fadeAnim = new Animated.Value(0);
-    const scaleAnim = new Animated.Value(0.9);
     const { checkAuth } = useAuthStore();
 
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
     useEffect(() => {
-        // Start animations
+        let initTimeout: NodeJS.Timeout;
+        let splashTimeout: NodeJS.Timeout;
+        let isMounted = true;
+
+        // Start splash animation
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -34,28 +38,40 @@ export const SplashScreen: React.FC = () => {
         ]).start();
 
         const init = async () => {
-            // Check authentication
-            const isAuthenticated = await checkAuth();
+            try {
+                const isAuthenticated = await checkAuth();
 
-            // Minimal delay for splash effect
-            setTimeout(() => {
-                if (isAuthenticated) {
+                if (!isMounted) return;
+
+                splashTimeout = setTimeout(() => {
                     navigation.reset({
                         index: 0,
-                        routes: [{ name: 'InspectionList' as never }],
+                        routes: [
+                            {
+                                name: isAuthenticated
+                                    ? 'InspectionList'
+                                    : 'Login',
+                            },
+                        ],
                     });
-                } else {
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Login' as never }],
-                    });
-                }
-            }, 2000);
+                }, 2000);
+            } catch (error) {
+                // fallback in case auth fails
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                });
+            }
         };
 
-        const timer = setTimeout(init, 100); // Start init
-        return () => clearTimeout(timer);
-    }, [navigation, checkAuth]);
+        initTimeout = setTimeout(init, 100);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(initTimeout);
+            clearTimeout(splashTimeout);
+        };
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -66,16 +82,27 @@ export const SplashScreen: React.FC = () => {
                         opacity: fadeAnim,
                         transform: [{ scale: scaleAnim }],
                     },
-                ]}>
+                ]}
+            >
                 <View style={styles.logoContainer}>
                     <Text style={styles.logoIcon}>🔍</Text>
                 </View>
+
                 <Text style={styles.subtitle}>INDUSTRIAL</Text>
                 <Text style={styles.title}>SmartOCRApp</Text>
-                <View style={[styles.scannerLine, { width: width * 0.4 }]} />
+
+                <View
+                    style={[
+                        styles.scannerLine,
+                        { width: width * 0.4 },
+                    ]}
+                />
             </Animated.View>
+
             <View style={styles.footer}>
-                <Text style={styles.footerText}>SECURE SCANNING • REAL-TIME DATA</Text>
+                <Text style={styles.footerText}>
+                    SECURE SCANNING • REAL-TIME DATA
+                </Text>
             </View>
         </View>
     );

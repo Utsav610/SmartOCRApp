@@ -24,12 +24,12 @@ export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'InspectionList' as never }],
-    });
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [{ name: 'InspectionList' as never }],
+    // });
 
-    return;
+    // return;
 
     if (!username || !password) {
       Alert.alert('Error', 'Please enter both username and password');
@@ -38,10 +38,7 @@ export const LoginScreen: React.FC = () => {
 
     const success = await login(username, password);
     if (success) {
-      // Navigation to 'InspectionList' will be handled typically
-      // by the stack navigator or explicit call here if needed,
-      // but usually we might reset the stack.
-      // For now, let's navigate explicitly.
+      
       navigation.reset({
         index: 0,
         routes: [{ name: 'InspectionList' as never }],
