@@ -176,14 +176,14 @@ export const CropScreen: React.FC = () => {
 
 
             // Crop Native
-            // const croppedPath = await OCRModule.cropImage(imagePath, x, y, w, h);
-            // console.log('croppedPath', croppedPath);
+            const croppedPath = await OCRModule.cropImage(imagePath, x, y, w, h);
+            console.log('croppedPath', croppedPath);
 
             // Navigate
             navigation.navigate('ReadingConfirmation' as never, {
                 row,
                 column,
-                imagePath: imagePath, // Pass the cropped image
+                imagePath: croppedPath, // Pass the cropped image
             } as never);
 
         } catch (error) {

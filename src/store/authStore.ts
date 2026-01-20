@@ -56,6 +56,8 @@ const loginApi = async (username: string, pass: string): Promise<{ accessToken: 
 };
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
 
 export const useAuthStore = create<AuthState>()(
     persist(
@@ -96,7 +98,7 @@ export const useAuthStore = create<AuthState>()(
                 }
 
                 const now = Date.now();
-                const isValid = (now - loginTimestamp) < SEVEN_DAYS_MS;
+                const isValid = (now - loginTimestamp) < ONE_HOUR_MS;
 
                 if (!isValid) {
                     // Token expired
