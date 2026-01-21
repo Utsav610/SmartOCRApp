@@ -33,6 +33,8 @@ export const CropScreen: React.FC = () => {
     const route = useRoute();
     const params = route.params as ScreenParams;
     const { imagePath, row, column, width, height } = params;
+    console.log('press');
+
 
     // const lastCropRegion = useInspectionStore(state => state.lastCropRegion); // Removed subscription
     const setLastCropRegion = useInspectionStore(state => state.setLastCropRegion);
@@ -41,71 +43,63 @@ export const CropScreen: React.FC = () => {
     const [viewSize, setViewSize] = useState<{ width: number; height: number } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Crop Region State (Normalized 0-1)
-    const cropX = useSharedValue(0);
-    const cropY = useSharedValue(0);
-    const cropWidth = useSharedValue(1);
-    const cropHeight = useSharedValue(1);
-
-    const isInitialized = useRef(false);
-
-    // Initialize Crop Region from Store
-    useEffect(() => {
-        if (!imageSize || !viewSize || isInitialized.current) return;
-
-        // Read directly from store to avoid re-renders
+    // Calculate initial crop region synchronously
+    const getInitialCrop = () => {
         const lastCropRegion = useInspectionStore.getState().lastCropRegion;
         let region = lastCropRegion;
 
-        // Handle potential double-serialization from previous bug
+        // Handle potential double-serialization
         if (typeof region === 'string') {
             try {
                 region = JSON.parse(region);
             } catch (e) {
-                // console.warn('Failed to parse lastCropRegion', e);
+                // Ignore parse error
             }
         }
 
         if (!region) {
-            // No saved region -> default to full
-            resetToFull();
-            isInitialized.current = true;
-            return;
+            return { x: 0, y: 0, width: 1, height: 1 };
         }
 
-        // Support both normalized (preferred) and legacy pixel-based regions
         let nX: number, nY: number, nW: number, nH: number;
-        // @ts-ignore - Handle legacy/stringified types dynamically
+
+        // @ts-ignore
         if (region.normalized) {
             nX = region.x;
             nY = region.y;
             nW = region.width;
             nH = region.height;
         } else {
-            // Legacy: pixels -> normalize using current image size
-            nX = region.x / imageSize.width;
-            nY = region.y / imageSize.height;
-            nW = region.width / imageSize.width;
-            nH = region.height / imageSize.height;
+            // Legacy: pixels -> normalize
+            nX = region.x / width;
+            nY = region.y / height;
+            nW = region.width / width;
+            nH = region.height / height;
         }
 
+        // Validate and clamp
         if (nW > 0 && nH > 0) {
-            // Clamp to valid range
-            cropX.value = Math.max(0, Math.min(1, nX));
-            cropY.value = Math.max(0, Math.min(1, nY));
-            cropWidth.value = Math.max(0.1, Math.min(1, nW));
-            cropHeight.value = Math.max(0.1, Math.min(1, nH));
+            nX = Math.max(0, Math.min(1, nX));
+            nY = Math.max(0, Math.min(1, nY));
+            nW = Math.max(0.1, Math.min(1, nW));
+            nH = Math.max(0.1, Math.min(1, nH));
 
-            // Ensure it stays within bounds
-            if (cropX.value + cropWidth.value > 1) cropWidth.value = 1 - cropX.value;
-            if (cropY.value + cropHeight.value > 1) cropHeight.value = 1 - cropY.value;
-        } else {
-            resetToFull();
+            if (nX + nW > 1) nW = 1 - nX;
+            if (nY + nH > 1) nH = 1 - nY;
+
+            return { x: nX, y: nY, width: nW, height: nH };
         }
 
-        isInitialized.current = true;
+        return { x: 0, y: 0, width: 1, height: 1 };
+    };
 
-    }, [imageSize, viewSize]);
+    const initialCrop = getInitialCrop();
+
+    // Crop Region State (Normalized 0-1)
+    const cropX = useSharedValue(initialCrop.x);
+    const cropY = useSharedValue(initialCrop.y);
+    const cropWidth = useSharedValue(initialCrop.width);
+    const cropHeight = useSharedValue(initialCrop.height);
 
     const resetToFull = () => {
         cropX.value = 0;
